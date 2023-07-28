@@ -9,18 +9,30 @@ export default class App extends React.Component {
       beers: [],
     };
   }
+
   componentDidMount() {
     axios.get("https://api.punkapi.com/v2/beers").then(({ data }) => {
-      this.setState({ beers: [] });
+      // Add the 'liked' property to each beer object
+      const beersWithLiked = data.map((beer) => ({ ...beer, liked: false }));
+      this.setState({ beers: beersWithLiked });
     });
   }
+
+  handleLike = (id) => {
+    // Find the beer by id in the state and toggle the "liked" property
+    this.setState((prevState) => ({
+      beers: prevState.beers.map((beer) =>
+        beer.id === id ? { ...beer, liked: !beer.liked } : beer
+      ),
+    }));
+  };
 
   render() {
     return (
       <div className="App">
-        {this.state.beers.map((beer, index) => {
-          return <Beer key={beer.id} beer={beer}></Beer>;
-        })}
+        {this.state.beers.map((beer, index) => (
+          <Beer key={beer.id} {...beer} onLike={() => this.handleLike(beer.id)} />
+        ))}
       </div>
     );
   }
@@ -28,6 +40,18 @@ export default class App extends React.Component {
 
 class Beer extends React.Component {
   render() {
-    return <div>{/* this.prop.beer */}</div>;
+    const { name, tagline, description, liked } = this.props;
+
+    return (
+      <div>
+        <h2>{name}</h2>
+        <h3>{tagline}</h3>
+        <p>{description}</p>
+        <button onClick={this.props.onLike}>
+          {liked ? "Unlike 👎" : "Like 👍"}
+        </button>
+        <hr />
+      </div>
+    );
   }
 }
